@@ -1,0 +1,8 @@
+# İndirilen model ağırlıkları (~16 GB)
+modeller/
+
+# Deney çıktıları: ham saldırı yanıtları içerir, yerelde kalır (§11)
+sonuclar/
+
+# Üretilen Modelfile'lar (1_modelleri_hazirla.py yeniden üretir)
+Modelfile.*

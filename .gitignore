@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Kimlik bilgileri — asla commit edilmez (§11)
+.env
+
+# Run Store: ham şablon+yanıt çiftleri hassas çıktı içerir, yerelde kalır (§11)
+*.db
+*.db-wal
+*.db-shm
+
+# Üretilen raporlar
+reports/out/
+*.html
+*.pdf
+
+.ipynb_checkpoints/

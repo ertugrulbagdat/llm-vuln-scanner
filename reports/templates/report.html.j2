@@ -1,0 +1,267 @@
+{#
+  Tek dosyalık HTML rapor şablonu — Spesifikasyon §8.
+
+  Gömülü CSS, harici bağımlılık yok: rapor tek başına paylaşılabilir bir dosya
+  olarak üretilir. Grafikler saf CSS ile çizilir; bir CDN'den JS çekmek raporun
+  tek dosya olma özelliğini bozardı.
+
+  ÖNEMLİ: Bu şablon autoescape AÇIK olarak render edilir. Rapora hedef modelin
+  ham çıktısı gömülür; autoescape olmadan saldırgan kontrolündeki bir yanıt
+  raporu görüntüleyen kişiye karşı XSS'e dönüşürdü.
+#}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zafiyet Raporu — {{ run.target_name }}</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1d23; --muted: #6b7280; --line: #e5e7eb;
+    --panel: #f9fafb; --accent: #2563eb;
+    --strong: #059669; --ok: #65a30d; --weak: #d97706; --critical: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 16px; background: var(--bg); color: var(--fg);
+    font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 19px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+  h3 { font-size: 15px; margin: 20px 0 6px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+  .score-card {
+    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+    padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+  }
+  .score-value { font-size: 56px; font-weight: 700; line-height: 1; }
+  .badge {
+    display: inline-block; padding: 4px 12px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; color: #fff;
+  }
+  .s-strong { background: var(--strong); } .s-ok { background: var(--ok); }
+  .s-weak { background: var(--weak); } .s-critical { background: var(--critical); }
+  .delta { font-size: 14px; color: var(--muted); }
+  .stats { display: flex; gap: 28px; flex-wrap: wrap; }
+  .stat-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .stat-value { font-size: 22px; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .bar-track { background: var(--line); border-radius: 4px; height: 10px; width: 140px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .finding {
+    border: 1px solid var(--line); border-left: 4px solid var(--critical);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; background: var(--panel);
+  }
+  .finding.review { border-left-color: var(--weak); }
+  .finding-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .tag {
+    font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    background: #e5e7eb; color: #374151; font-weight: 600;
+  }
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px; white-space: pre-wrap; word-break: break-word;
+    background: #fff; border: 1px solid var(--line); border-radius: 6px;
+    padding: 10px; margin: 6px 0 0; max-height: 220px; overflow: auto;
+  }
+  .label { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 10px; }
+  .notice {
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;
+    padding: 12px 16px; font-size: 14px; margin: 16px 0;
+  }
+  .empty { color: var(--muted); font-style: italic; }
+  a { color: var(--accent); }
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line);
+           color: var(--muted); font-size: 13px; }
+  @media print { body { padding: 0; } .mono { max-height: none; } }
+</style>
+</head>
+<body>
+<main>
+
+  <h1>LLM Zafiyet Raporu</h1>
+  <p class="sub">
+    Hedef: <strong>{{ run.target_name }}</strong> ·
+    Koşu: <code>{{ run.run_id }}</code> ·
+    {{ run.started_at.strftime("%d.%m.%Y %H:%M") }} UTC
+  </p>
+
+  <h2>Yönetici Özeti</h2>
+  <div class="score-card">
+    <div>
+      <div class="stat-label">Dayanıklılık Skoru</div>
+      <div class="score-value">{{ "%.1f"|format(score.robustness_score) }}</div>
+      <span class="badge {{ severity_class }}">{{ score.label }}</span>
+      {% if delta is not none %}
+        <div class="delta">
+          Bir önceki koşuya göre
+          {% if delta > 0 %}+{% endif %}{{ "%.1f"|format(delta) }} puan
+        </div>
+      {% endif %}
+    </div>
+    <div class="stats">
+      <div>
+        <div class="stat-label">Toplam Deneme</div>
+        <div class="stat-value">{{ score.total_results }}</div>
+      </div>
+      <div>
+        <div class="stat-label">Kırılma</div>
+        <div class="stat-value">{{ "%g"|format(score.compromised_count) }}</div>
+      </div>
+      <div>
+        <div class="stat-label">İnsan İncelemesi</div>
+        <div class="stat-value">{{ score.needs_review }}</div>
+      </div>
+      <div>
+        <div class="stat-label">Test Edilemedi</div>
+        <div class="stat-value">{{ score.errors }}</div>
+      </div>
+    </div>
+  </div>
+
+  {% if run.status.value != "completed" %}
+    <div class="notice">
+      Bu koşu <strong>{{ run.status.value }}</strong> durumunda sonlandı; rapor
+      yalnızca o ana kadar yazılan sonuçları kapsar.
+    </div>
+  {% endif %}
+
+  <h2>Kategori Kırılımı</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Kategori</th><th>Dayanıklılık</th><th></th>
+        <th>Kırılma</th><th>Deneme</th><th>Ağırlık</th><th>Katkı</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat in categories %}
+      <tr>
+        <td>{{ cat.category }}</td>
+        <td>{{ "%.0f"|format(cat.resilience * 100) }}%</td>
+        <td>
+          <div class="bar-track">
+            <div class="bar-fill"
+                 style="width: {{ "%.0f"|format(cat.resilience * 100) }}%;
+                        background: {{ bar_color(cat.resilience) }};"></div>
+          </div>
+        </td>
+        <td>{{ "%g"|format(cat.compromised) }}</td>
+        <td>{{ cat.total }}</td>
+        <td>{{ "%.2f"|format(cat.weight) }}</td>
+        <td>{{ "%.1f"|format(cat.weighted_score) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>En Kritik Bulgular</h2>
+  {% if redacted %}
+    <div class="notice">
+      Hassas içerik varsayılan olarak kırpılmış ve kanarya belirteci maskelenmiştir
+      (§8, §11). Tam metne yalnızca yerel Run Store üzerinden erişilir.
+    </div>
+  {% endif %}
+
+  {% if findings %}
+    {% for f in findings %}
+    <div class="finding">
+      <div class="finding-head">
+        <strong>{{ f.template_id }}</strong>
+        <span class="tag">{{ f.category }}</span>
+        <span class="tag">{{ f.severity }}</span>
+        <span class="tag">güven {{ "%.2f"|format(f.confidence) }}</span>
+      </div>
+      <div>{{ f.rationale }}</div>
+      <div class="label">Gönderilen prompt</div>
+      <pre class="mono">{{ f.prompt }}</pre>
+      <div class="label">Hedefin yanıtı</div>
+      <pre class="mono">{{ f.response }}</pre>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p class="empty">Bu koşuda kırılma tespit edilmedi.</p>
+  {% endif %}
+
+  <h2>İnsan İncelemesi Gerekli</h2>
+  <p class="sub">
+    Kural tabanlı katmanın kararsız kaldığı veya düşük güvenle karar verdiği
+    sonuçlar (§6). Bunlar otomatik olarak zafiyet sayılmaz; skora yarım
+    ağırlıkla girer.
+  </p>
+  {% if review_items %}
+    {% for f in review_items %}
+    <div class="finding review">
+      <div class="finding-head">
+        <strong>{{ f.template_id }}</strong>
+        <span class="tag">{{ f.category }}</span>
+        <span class="tag">güven {{ "%.2f"|format(f.confidence) }}</span>
+      </div>
+      <div>{{ f.rationale }}</div>
+      <div class="label">Hedefin yanıtı</div>
+      <pre class="mono">{{ f.response }}</pre>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p class="empty">İnceleme gerektiren sonuç yok.</p>
+  {% endif %}
+
+  <h2>Zaman İçinde Eğilim</h2>
+  {% if history|length > 1 %}
+    <table>
+      <thead><tr><th>Koşu</th><th>Tarih</th><th>Skor</th><th></th></tr></thead>
+      <tbody>
+        {% for point in history %}
+        <tr>
+          <td><code>{{ point.run_id[:8] }}</code></td>
+          <td>{{ point.computed_at.strftime("%d.%m.%Y %H:%M") }}</td>
+          <td>{{ "%.1f"|format(point.robustness_score) }}</td>
+          <td>
+            <div class="bar-track" style="width: 220px;">
+              <div class="bar-fill"
+                   style="width: {{ "%.0f"|format(point.robustness_score) }}%;
+                          background: {{ bar_color(point.robustness_score / 100) }};"></div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty">
+      Karşılaştırma için bu hedefe ait yeterli geçmiş koşu yok. Aynı hedefi aynı
+      <code>seed</code> ve şablon sürümüyle tekrar tarayın.
+    </p>
+  {% endif %}
+
+  <h2>Metodoloji</h2>
+  <table>
+    <tbody>
+      <tr><td>Şablon seti sürümü</td><td>{{ run.template_set_version }}</td></tr>
+      <tr><td>Seed</td><td>{{ run.seed }}</td></tr>
+      <tr><td>Tespit katmanı</td><td>Katman 1 — kural tabanlı (Faz 1)</td></tr>
+      <tr><td>LLM-judge</td><td>Kullanılmadı (Faz 2)</td></tr>
+      <tr><td>Kanarya ekildi mi</td><td>{{ "Evet" if canary_planted else "Hayır" }}</td></tr>
+      <tr><td>Düşük güven eşiği</td><td>{{ low_confidence_threshold }}</td></tr>
+      <tr><td>Koşu durumu</td><td>{{ run.status.value }}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Ham Veri Eki</h2>
+  <p>
+    <a href="{{ json_uri }}" download="{{ run.run_id }}.json">JSON olarak indir</a> ·
+    <a href="{{ csv_uri }}" download="{{ run.run_id }}.csv">CSV olarak indir</a>
+  </p>
+
+  <footer>
+    {{ generated_at.strftime("%d.%m.%Y %H:%M") }} UTC tarihinde üretildi ·
+    LLM Zafiyet Tarayıcısı · Yalnızca yetkilendirilmiş hedeflerde kullanım içindir (§11).
+  </footer>
+
+</main>
+</body>
+</html>
