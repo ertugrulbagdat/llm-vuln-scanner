@@ -16,7 +16,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # requirements-dev.txt ile aynı tutulur.
-dev = ["pytest>=8.0", "mypy>=1.8", "ruff>=0.5", "types-PyYAML"]
+dev = ["pytest>=8.0", "mypy>=1.8", "ruff>=0.5", "types-PyYAML", "pandas-stubs"]
 # requirements.txt'teki "Deneyler ve betikler" ve "Notebook" bölümleriyle aynı tutulur.
 experiments = ["scipy>=1.11", "huggingface_hub>=0.20", "pyarrow>=14.0"]
 notebook = ["jupyterlab>=4.0", "nbformat>=4.2"]
@@ -43,6 +43,11 @@ ignore = ["ANN401"]
 # çağrısı olmak zorunda (B008) ve typer 0.9 PEP 604 birleşimini çözemediği için
 # `Optional[X]` kullanılır (UP045).
 "cli.py" = ["B008", "UP045"]
+# Notebook'un ilk hücresi, kullanıcının değiştireceği KURU_PROVA anahtarını en
+# üstte tutar ve deney modülünü (karsilastir) içe aktarmadan önce sys.path'e
+# eklemek zorundadır; bu yüzden içe aktarmalar hücrenin başında olamaz (E402).
+# Betiklerdeki aynı kalıp satır içi `# noqa: E402` ile işaretlenir.
+"notebooks/*.ipynb" = ["E402"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -66,3 +71,8 @@ module = [
 ]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+
+# scipy tip bilgisi (py.typed / stub paketi) yayımlamaz.
+[[tool.mypy.overrides]]
+module = ["scipy", "scipy.*"]
+ignore_missing_imports = true

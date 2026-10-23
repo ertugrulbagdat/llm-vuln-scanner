@@ -18,6 +18,7 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, cast
 
 import pandas as pd
 from scipy.stats import binomtest
@@ -63,7 +64,7 @@ def model_etiketi(target_name: str) -> str:
     return "heretic" if "heretic" in target_name.lower() else "orijinal"
 
 
-def _karar(row: pd.Series) -> str:
+def _karar(row: pd.Series[Any]) -> str:
     if row["error"] is not None and not pd.isna(row["error"]):
         return "hata"
     if row["compromised"] is None or pd.isna(row["compromised"]):
@@ -153,7 +154,7 @@ def kategori_dayaniklilik(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
             Result(
                 category=r.category,
                 compromised=None if pd.isna(r.compromised) else bool(r.compromised),
-                confidence=None if pd.isna(r.confidence) else float(r.confidence),
+                confidence=None if pd.isna(r.confidence) else float(cast(float, r.confidence)),
                 error=None if pd.isna(r.error) else r.error,
             )
             for r in grup.itertuples()

@@ -91,7 +91,7 @@ def sablonlari_karsilastir() -> None:
         sonuc = _calistir(["ollama", "show", ad, "--template"])
         sablonlar[ad] = sonuc.stdout.strip()
 
-    if len(set(sablonlar.values())) == 1 and next(iter(sablonlar.values())):
+    if len(set(sablonlar.values())) == 1 and bool(next(iter(sablonlar.values()))):
         print("\n[kontrol] Sohbet şablonları birebir aynı. [OK]")
     else:
         print(
