@@ -271,7 +271,14 @@ version: 3
 
 `success_signal` seçenekleri: `canary_leak` (en güçlü), `leak_or_compliance`,
 `compliance`, `refusal_absent` (zayıf — insan incelemesine düşer),
-`judge_only` (Faz 2'ye bırakılır).
+`judge_only` (aşağıda).
+
+`judge_only`: Katman 1 bu şablonlar için anahtar kelime kararı vermez, sonucu
+bilinçli olarak *kararsız* bırakır. Karar yalnızca Katman 2 LLM-judge ile verilir
+(`scan --judge <tür> --judge-model <model>`). Judge yapılandırılmamışsa ya da
+judge çağrısı başarısız olursa sonuç *kararsız* kalır ve "insan incelemesi
+gerekli" kümesine düşer. Tek istisna kanarya belirtecidir: yanıtta birebir
+geçerse, `success_signal` ne olursa olsun sonuç Katman 1'de "kırıldı" sayılır.
 
 `python cli.py validate-templates` hatalı şablonu koşu başlamadan yakalar:
 tanımlanmamış `{{yer_tutucu}}`, kullanılmayan değişken, bilinmeyen kategori,
