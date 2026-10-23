@@ -10,7 +10,7 @@ Skoru** ile kategori bazlı zafiyet raporu üretir.
 > Bir DoS/aşırı yükleme mekanizması değildir; oran sınırlaması varsayılan
 > olarak muhafazakârdır. Ayrıntılar için spesifikasyon §11.
 
-Tasarım belgesi: `../LLM Zafiyet Tarayıcısı — Teknik Spesifikasyon.pdf`
+Tasarım belgesi: [`docs/LLM Zafiyet Tarayıcısı — Teknik Spesifikasyon.pdf`](<docs/LLM Zafiyet Tarayıcısı — Teknik Spesifikasyon.pdf>)
 Aşağıdaki `§` atıfları bu belgeye yapılır.
 
 ## Durum: Faz 2 tamamlandı ✅ · Faz 3 sürüyor 🔄
@@ -187,6 +187,7 @@ llm-vuln-scanner/
   scripts/       # import_heretic.py (Heretic prompt kümesini şablona aktarır)
   experiments/   # heretic_karsilastirma/ (orijinal ↔ Heretic model deneyi)
   tests/         # pytest test paketi
+  docs/          # teknik spesifikasyon (§ atıflarının kaynağı)
   cli.py
 ```
 
