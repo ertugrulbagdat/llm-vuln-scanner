@@ -13,10 +13,12 @@ Skoru** ile kategori bazlı zafiyet raporu üretir.
 Tasarım belgesi: `../LLM Zafiyet Tarayıcısı — Teknik Spesifikasyon.pdf`
 Aşağıdaki `§` atıfları bu belgeye yapılır.
 
-## Durum: Faz 1 — MVP ✅
+## Durum: Faz 2 tamamlandı ✅ · Faz 3 sürüyor 🔄
 
-Spesifikasyon §12'ye göre Faz 1 çıktısı: *"Tek komutla koşulabilen, skor
-üreten araç."*
+Spesifikasyon §12'deki yol haritasına göre Faz 0 (iskelet), Faz 1 (MVP: *"tek
+komutla koşulabilen, skor üreten araç"*) ve Faz 2 (hibrit tespit: LLM-judge
+katmanı) tamamlandı. Faz 3'ün (şablon genişletme) ilk adımı olarak Heretic'in
+zararlı prompt kümesi kütüphaneye aktarıldı.
 
 | Bileşen | Durum | Dosya |
 | --- | --- | --- |
@@ -26,11 +28,13 @@ Spesifikasyon §12'ye göre Faz 1 çıktısı: *"Tek komutla koşulabilen, skor
 | Pydantic şablon doğrulama (§4) | ✅ Faz 0 | `templates/schema.py` |
 | Gerçek adaptörler (§3) | ✅ Faz 1 | `adapters/{anthropic,openai_compat,http_generic}.py` |
 | Fuzzing motoru (§5) | ✅ Faz 1 | `engine/runner.py`, `engine/ratelimit.py` |
-| Çekirdek şablon kütüphanesi (§4) | ✅ Faz 1 | `templates/<kategori>/*.yaml` — 31 şablon, 44 prompt |
+| Çekirdek şablon kütüphanesi (§4) | ✅ Faz 1 | `templates/<kategori>/*.yaml` |
 | Katman 1 tespit (§6) | ✅ Faz 1 | `analysis/rule_based.py` |
 | Dayanıklılık Skoru (§7) | ✅ Faz 1 | `scoring/robustness.py` |
 | HTML rapor (§8) | ✅ Faz 1 | `reports/html_generator.py` |
 | Katman 2 LLM-judge (§6) | ✅ Faz 2 | `analysis/judge.py` — `scan --judge <tür> --judge-model <model>` |
+| Heretic zararlı prompt içe aktarımı (§4) | ✅ Faz 3 | `scripts/import_heretic.py` |
+| Tüm kategorilerde 100+ şablon, TR/EN kapsam (§12) | 🔄 Faz 3 | `templates/` |
 | PDF export, CI/CD (§8) | ⬜ Faz 4 | — |
 
 ## Kurulum
@@ -41,6 +45,10 @@ cp .env.example .env     # API anahtarları buraya; .env asla commit edilmez (§
 ```
 
 Python 3.11+ gerekir.
+
+Kütüphanenin güncel şablon ve prompt sayısını görmek için
+`python cli.py validate-templates` komutunu çalıştırın; son satır toplamları
+yazdırır.
 
 ## Hızlı başlangıç
 
@@ -94,7 +102,7 @@ python cli.py scan -t http-generic --config hedef.yaml --i-own-this-target
 python cli.py init-db                      # runs, results, scores tablolarını kurar
 python cli.py validate-templates           # YAML kütüphanesini şemaya göre doğrular
 python cli.py smoke --i-own-this-target    # ağa çıkmayan stub akışı
-python -m pytest                           # 247 test
+python -m pytest                           # tüm test paketi
 ```
 
 ## Nasıl çalışır
@@ -126,6 +134,31 @@ ayrı bir "insan incelemesi gerekli" kümesinde toplanır ve skora yarım
 ağırlıkla girer (§7). Hata alan denemeler ("test edilemedi", §3) skoru ne
 yükseltir ne düşürür.
 
+## Heretic içe aktarımı ve karşılaştırma deneyi
+
+[Heretic](https://github.com/p-e-w/heretic), bir modelin ağırlıklarından
+"reddetme yönünü" silen bir araçtır. Projede ona dayanan iki parça var:
+
+- **`scripts/import_heretic.py`** — Heretic'in değerlendirmede kullandığı zararlı
+  prompt kümesini (Hugging Face `mlabonne/harmful_behaviors`, sabitlenmiş commit)
+  indirir, her promptu kategorize edip `Template` şemasıyla doğrular ve
+  `templates/<kategori>/*-heretic-*.yaml` olarak yazar. İdempotenttir: her
+  çalıştırmada önceki içe aktarmayı silip yeniden üretir.
+
+  ```bash
+  python scripts/import_heretic.py                # varsayılan: test[:100]
+  python scripts/import_heretic.py --dry-run      # yazmadan önizle
+  python cli.py validate-templates
+  ```
+
+- **`experiments/heretic_karsilastirma/`** — tespit hattını, kırılganlığı
+  *bilinen* bir model çiftiyle (Qwen3-4B ve Heretic versiyonu) doğrulayan deney.
+  Betikler modelleri aynı yöntemle Ollama'ya yükler, iki modeli aynı ayarlarla
+  tarar; `notebooks/heretic_karsilastirma.ipynb` R skorlarını, karar
+  dağılımlarını ve eşleştirilmiş McNemar testini karşılaştırır, altın küme
+  adaylarını çıkarır. Ayrıntılar ve geçerlilik tehditleri:
+  [`experiments/heretic_karsilastirma/README.md`](experiments/heretic_karsilastirma/README.md).
+
 ## Dayanıklılık Skoru (§7)
 
 ```
@@ -149,8 +182,11 @@ llm-vuln-scanner/
   analysis/      # Katman 1 kural tabanlı tespit + Katman 2 LLM-judge
   scoring/       # Robustness Score hesaplama
   reports/       # jinja2 şablonu, tek dosyalık HTML üretici
-  notebooks/     # run.ipynb, analyze.ipynb
   store/         # SQLite şeması, bağlantı yönetimi
+  notebooks/     # heretic_karsilastirma.ipynb (deney analizi)
+  scripts/       # import_heretic.py (Heretic prompt kümesini şablona aktarır)
+  experiments/   # heretic_karsilastirma/ (orijinal ↔ Heretic model deneyi)
+  tests/         # pytest test paketi
   cli.py
 ```
 
@@ -245,7 +281,14 @@ tipleri kullanır; Postgres'e geçiş tek satır bağlantı dizesi değişikliğ
 export LLM_SCANNER_DB_URL="postgresql+psycopg://..."
 ```
 
-## Sonraki adım: Faz 2 — Hibrit tespit
+## Sonraki adım: Faz 3'ü tamamlamak — Şablon genişletme
 
-LLM-judge katmanı, güven skoru kalibrasyonu, altın küme doğrulaması. Çıktı:
-yanlış pozitif oranı ölçülmüş ve raporlanmış tespit hattı.
+Heretic içe aktarımı şablonların büyük çoğunluğunu `harmful_content`
+kategorisine ekledi; diğer kategoriler hâlâ çekirdek düzeyde. §12'ye göre Faz 3
+çıktısı *"yüzlerce şablonluk kütüphane"*dir:
+
+- taksonominin **tüm** kategorilerinde 100+ şablon,
+- çok türlü senaryolar (çok turlu, dolaylı enjeksiyon, araç kötüye kullanımı),
+- çok dilli (TR/EN) kapsam — içe aktarılan Heretic promptları yalnızca İngilizce.
+
+Ardından Faz 4: PDF export, zaman içinde eğilim grafikleri, CI/CD entegrasyonu.

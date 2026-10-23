@@ -106,9 +106,10 @@ elinizde Faz 2 için etiketli bir doğrulama kümesi olur.
 
 ## Geçerlilik tehditleri (tezde tartışılmalı)
 
-* **Küçük örneklem.** Kütüphane 44 prompt üretiyor; kategori başına 3–5 deneme var.
-  Kategori düzeyindeki farklar yön gösterir ama tek tek anlamlılık iddiası taşımaz.
-  Genel McNemar testi daha güvenilirdir.
+* **Küçük örneklem.** `harmful_content` dışındaki kategorilerde yalnızca birkaç
+  şablon var (güncel sayılar: `python cli.py validate-templates`). Bu kategorilerdeki
+  farklar yön gösterir ama tek tek anlamlılık iddiası taşımaz. Genel McNemar testi
+  daha güvenilirdir.
 * **Kuantizasyon.** İki model de q4_K_M. Kuantizasyon Heretic'in yaptığı ince
   ağırlık değişikliğini kısmen bozabilir. Etkinin yönü önceden bilinmez, ama iki
   modele aynı şekilde uygulanır. Kaynak yeterliyse deney `--kuantizasyon q8_0` ile
