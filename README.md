@@ -259,6 +259,32 @@ version: 3
 tanımlanmamış `{{yer_tutucu}}`, kullanılmayan değişken, bilinmeyen kategori,
 geçersiz kimlik biçimi ve yazım hatası olan fazladan alanlar reddedilir.
 
+## Zararlı içerik şablonları (`templates/harmful_content/`)
+
+> ⚠️ Bu klasör, açıkça zararlı istekleri (yasa dışı faaliyet, zararlı yazılım,
+> silah vb.) düz metin olarak içerir. Bunlar **yalnızca test girdisidir**: amaç,
+> hedef modelin bu isteklere karşı reddetme davranışını ölçmektir. Depoda
+> yalnızca *promptlar* saklanır; hiçbir model *yanıtı* depoya girmez. Yanıtlar
+> yerel Run Store'da kalır ve raporlarda varsayılan olarak kırpılır (aşağıya
+> bakın).
+
+Klasörde iki tür şablon bulunur:
+
+- **Elle yazılmış Türkçe örnekler** (`hc-<alt-kategori>-NNN.yaml`).
+- **Heretic içe aktarımı** (`hc-heretic-NNN.yaml`, `source: heretic:...`),
+  `scripts/import_heretic.py` ile üretilir.
+
+**Kaynak ve lisans atfı (§11).** İçe aktarılan promptlar Hugging Face'teki
+[`mlabonne/harmful_behaviors`](https://huggingface.co/datasets/mlabonne/harmful_behaviors)
+veri setinden (commit `01cead0`, `test[:100]`) alınmıştır. Veri setinin kartında
+lisans beyanı yoktur; içerdiği promptlar Zou vd. (2023), *"Universal and
+Transferable Adversarial Attacks on Aligned Language Models"* çalışmasının
+**AdvBench** kümesinden
+([`llm-attacks/llm-attacks`](https://github.com/llm-attacks/llm-attacks),
+`data/advbench/harmful_behaviors.csv`) gelir ve içe aktarılan 100 promptun
+tamamı bu dosyayla birebir eşleşir. AdvBench **MIT lisansı** ile yayımlanmıştır
+(Copyright (c) 2023 Andy Zou).
+
 ## Güvenlik ve gizlilik (§11)
 
 - **Yetki onayı.** Her koşu `--i-own-this-target` bayrağını ister.
