@@ -14,6 +14,5 @@ scipy>=1.11              # experiments/heretic_karsilastirma: McNemar kesin test
 huggingface_hub>=0.20    # Model indirme (deney) ve veri seti indirme (scripts/import_heretic.py)
 pyarrow>=14.0            # scripts/import_heretic.py: parquet okuma (pandas.read_parquet)
 
-# Notebook — pyproject.toml [notebook]
-jupyterlab>=4.0
-nbformat>=4.2        # plotly'nin notebook içinde fig.show() çizimi için
+# Notebook bağımlılıkları (jupyterlab, nbformat) burada değil:
+# pip install -e ".[notebook]"

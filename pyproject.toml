@@ -17,8 +17,10 @@ dependencies = [
 [project.optional-dependencies]
 # requirements-dev.txt ile aynı tutulur.
 dev = ["pytest>=8.0", "mypy>=1.8", "ruff>=0.5", "types-PyYAML", "pandas-stubs"]
-# requirements.txt'teki "Deneyler ve betikler" ve "Notebook" bölümleriyle aynı tutulur.
+# requirements.txt'teki "Deneyler ve betikler" bölümüyle aynı tutulur.
 experiments = ["scipy>=1.11", "huggingface_hub>=0.20", "pyarrow>=14.0"]
+# Yalnızca notebook için; requirements.txt'te yer almaz. nbformat, plotly'nin
+# notebook içinde fig.show() çizimi için gerekir.
 notebook = ["jupyterlab>=4.0", "nbformat>=4.2"]
 report = ["weasyprint>=60"]
 

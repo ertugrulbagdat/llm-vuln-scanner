@@ -40,7 +40,7 @@ zararlı prompt kümesi kütüphaneye aktarıldı.
 ## Kurulum
 
 ```bash
-pip install -r requirements.txt       # çalışma zamanı + deney/notebook bağımlılıkları
+pip install -r requirements.txt       # çalışma zamanı + deney/betik bağımlılıkları
 cp .env.example .env     # API anahtarları buraya; .env asla commit edilmez (§11)
 ```
 
@@ -51,7 +51,15 @@ Geliştirme için (test, `ruff`, `mypy`) `requirements-dev.txt` dosyasını kuru
 pip install -r requirements-dev.txt
 ```
 
-`pyproject.toml` ile kurulumda aynı gruplar ek bağımlılık olarak tanımlıdır:
+Notebook'u (`notebooks/heretic_karsilastirma.ipynb`) çalıştırmak için
+jupyterlab ve nbformat gerekir. Bunlar aracı çalıştırmak için gerekmediğinden
+`requirements.txt`'te yer almaz; `pyproject.toml`'daki `notebook` grubuyla kurun:
+
+```bash
+pip install -e ".[notebook]"
+```
+
+`pyproject.toml` ile kurulumda tüm gruplar birlikte de seçilebilir:
 `pip install -e ".[dev,experiments,notebook]"`.
 
 Python 3.11+ gerekir.
