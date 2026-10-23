@@ -1,4 +1,5 @@
 # Çalışma zamanı bağımlılıkları — Spesifikasyon §10 (Teknoloji Yığını)
+# Geliştirme araçları (test, lint, tip kontrolü) için: requirements-dev.txt
 sqlalchemy>=2.0      # Depolama: SQLite, Postgres'e sorunsuz geçiş
 pydantic>=2.0        # Şablon şema doğrulaması
 pyyaml>=6.0          # YAML şablon formatı
@@ -8,8 +9,11 @@ jinja2>=3.1          # HTML rapor şablonları
 pandas>=2.0          # Notebook içi analiz
 plotly>=5.0          # Grafikler
 
-# Geliştirme
-pytest>=8.0
-mypy>=1.8
-ruff>=0.5
-types-PyYAML
+# Deneyler ve betikler — pyproject.toml [experiments]
+scipy>=1.11              # experiments/heretic_karsilastirma: McNemar kesin testi
+huggingface_hub>=0.20    # Model indirme (deney) ve veri seti indirme (scripts/import_heretic.py)
+pyarrow>=14.0            # scripts/import_heretic.py: parquet okuma (pandas.read_parquet)
+
+# Notebook — pyproject.toml [notebook]
+jupyterlab>=4.0
+nbformat>=4.2        # plotly'nin notebook içinde fig.show() çizimi için

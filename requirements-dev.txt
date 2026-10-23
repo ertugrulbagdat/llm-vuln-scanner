@@ -1,0 +1,7 @@
+# Geliştirme araçları — pyproject.toml [dev]
+-r requirements.txt
+
+pytest>=8.0
+mypy>=1.8
+ruff>=0.5
+types-PyYAML

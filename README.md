@@ -40,9 +40,19 @@ zararlı prompt kümesi kütüphaneye aktarıldı.
 ## Kurulum
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt       # çalışma zamanı + deney/notebook bağımlılıkları
 cp .env.example .env     # API anahtarları buraya; .env asla commit edilmez (§11)
 ```
+
+Geliştirme için (test, `ruff`, `mypy`) `requirements-dev.txt` dosyasını kurun;
+çalışma zamanı bağımlılıklarını da içerir:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+`pyproject.toml` ile kurulumda aynı gruplar ek bağımlılık olarak tanımlıdır:
+`pip install -e ".[dev,experiments,notebook]"`.
 
 Python 3.11+ gerekir.
 

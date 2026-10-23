@@ -15,9 +15,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# requirements-dev.txt ile aynı tutulur.
 dev = ["pytest>=8.0", "mypy>=1.8", "ruff>=0.5", "types-PyYAML"]
+# requirements.txt'teki "Deneyler ve betikler" ve "Notebook" bölümleriyle aynı tutulur.
+experiments = ["scipy>=1.11", "huggingface_hub>=0.20", "pyarrow>=14.0"]
+notebook = ["jupyterlab>=4.0", "nbformat>=4.2"]
 report = ["weasyprint>=60"]
-notebook = ["jupyterlab>=4.0"]
 
 [project.scripts]
 llm-vuln-scanner = "cli:app"
